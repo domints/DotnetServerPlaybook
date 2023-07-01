@@ -1,0 +1,29 @@
+---
+# tasks file for install-acmesh
+- name: Ensure variables
+  fail:
+    msg: "Required variable {{item}} has not been provided"
+  when: vars[item] is undefined
+  loop:
+    - admin_email
+- name: check if acme.sh file exists
+  stat: 
+    path: /usr/local/bin/acme.sh
+  register: acme_sh_bin
+- name: Download acme.sh script
+  command: wget -O acme.sh https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh
+  when: acme_sh_bin.stat.exists == False
+- name: Make acme.sh executable
+  ansible.builtin.file:
+    path: ./acme.sh
+    mode: '0755'
+  when: acme_sh_bin.stat.exists == False
+- name: Install acme.sh script
+  command: ./acme.sh --install-online --home /usr/local/bin --config-home /etc/acme.sh --cert-home /etc/acme.sh/certs -m {{admin_email}}
+  when: acme_sh_bin.stat.exists == False
+- name: Cleanup acme.sh script
+  command: rm ./acme.sh
+  when: acme_sh_bin.stat.exists == False
+- name: Set default CA to Let's Encrypt
+  command: acme.sh --set-default-ca --server letsencrypt
+  when: acme_sh_bin.stat.exists == False

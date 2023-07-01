@@ -1,0 +1,5 @@
+
+- name: Update repositories cache and install dotnet 7.0 runtime package
+  ansible.builtin.apt:
+    name: aspnetcore-runtime-7.0
+    update_cache: yes

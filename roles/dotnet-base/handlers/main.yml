@@ -1,0 +1,4 @@
+---
+# handlers file for dotnet-base
+- name: Reload nginx
+  service: name=nginx state=reloaded

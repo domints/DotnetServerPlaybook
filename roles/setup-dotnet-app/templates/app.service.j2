@@ -1,0 +1,15 @@
+[Unit]
+Description={{ app_description | default("") }}
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=dotnet-app
+WorkingDirectory=/var/dotnet/{{ app_dir | mandatory }}
+ExecStart=/usr/bin/dotnet /var/dotnet/{{ app_dir | mandatory }}/{{ app_dll | mandatory }} --urls http://127.0.0.1:{{ app_port | mandatory }}
+Environment=ASPNETCORE_ENVIRONMENT=Production
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,2 @@
+azure   ALL=(ALL:ALL) NOPASSWD: /usr/bin/systemctl_stop
+azure   ALL=(ALL:ALL) NOPASSWD: /usr/bin/systemctl_start

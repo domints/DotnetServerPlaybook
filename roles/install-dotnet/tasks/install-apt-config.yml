@@ -1,0 +1,14 @@
+# - name: Download preparation dpkg
+#   command: wget https://packages.microsoft.com/config/debian/{{ansible_distribution_version}}/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+#   when: '"packages-microsoft-prod" not in ansible_facts.packages'
+# - name: Install preparation dpkg
+#   command: dpkg -i packages-microsoft-prod.deb
+#   when: '"packages-microsoft-prod" not in ansible_facts.packages'
+# - name: Remove preparation dpkg
+#   command: rm packages-microsoft-prod.deb
+#   when: '"packages-microsoft-prod" not in ansible_facts.packages'
+
+- name: Install apt config for install-dotnet
+  ansible.builtin.apt:
+    deb: https://packages.microsoft.com/config/debian/{{ansible_distribution_version}}/packages-microsoft-prod.deb
+  when: '"packages-microsoft-prod" not in ansible_facts.packages'

@@ -1,0 +1,24 @@
+- name: Base .NET install
+  hosts: all
+  roles:
+    - role: dotnet-base
+    - role: setup-dotnet-app
+      app_dir: gtfs
+      app_description: Provider for GTFS data
+      app_port: 8400
+      app_dll: Gtfs.Provider.dll
+      app_domain: gtfs.yyk.pl
+    - role: setup-dotnet-app
+      app_dir: ttss
+      app_description: Provider for GTFS data
+      app_port: 8300
+      app_dll: TTSS.Api.dll
+      app_domain: ttss.yyk.pl
+      app_full_stack: true
+  tasks:
+    - name: Set authorized key taken from file
+      ansible.posix.authorized_key:
+        user: azure
+        state: present
+        key: "{{ lookup('file', './azure_rsa.pub') }}"
+    

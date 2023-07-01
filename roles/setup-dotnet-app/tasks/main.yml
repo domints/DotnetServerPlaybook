@@ -1,0 +1,61 @@
+---
+# tasks file for setup-dotnet-app
+- name: Ensure variables
+  fail:
+    msg: "Required variable {{item}} has not been provided"
+  when: vars[item] is undefined
+  loop:
+    - app_dir
+    - app_domain
+    - app_port
+    - app_dll
+
+- name: Add service file ({{app_dir}})
+  ansible.builtin.template:
+     src: templates/app.service.j2
+     dest: /etc/systemd/system/{{ app_dir | mandatory }}.service
+
+- name: Create app directory if it does not exist ({{app_dir}})
+  ansible.builtin.file:
+    path: /var/dotnet/{{app_dir}}
+    state: directory
+    mode: '0755'
+    owner: azure
+    group: www-data
+
+- name: Create web directory if it does not exist ({{app_dir}})
+  ansible.builtin.file:
+    path: /var/www/{{app_dir}}
+    state: directory
+    mode: '0755'
+    owner: azure
+    group: www-data
+  when: app_full_stack|default(false)|bool
+
+- name: Ensure cert for {{ app_domain }}
+  command: 'acme.sh --issue -d {{ app_domain }} -w /var/www/vps'
+  register: acme_sh_exec
+  failed_when: acme_sh_exec.rc != 0 and acme_sh_exec.rc != 2
+  changed_when: acme_sh_exec.rc == 0
+
+- name: Add nginx config file for standalone ({{app_dir}})
+  ansible.builtin.template:
+     src: templates/nginx.conf.j2
+     dest: /etc/nginx/conf.d/{{ app_dir | mandatory }}.conf
+  notify:
+    - Reload nginx
+  when: not app_full_stack|default(false)|bool
+
+- name: Add nginx config file for fullstack ({{app_dir}})
+  ansible.builtin.template:
+     src: templates/nginx.fullstack.conf.j2
+     dest: /etc/nginx/conf.d/{{ app_dir | mandatory }}.conf
+  notify:
+    - Reload nginx
+  when: app_full_stack|default(false)|bool
+
+- name: Enable service {{ app_dir }} and ensure it is not masked
+  ansible.builtin.systemd:
+    name: '{{ app_dir }}'
+    enabled: true
+    masked: no

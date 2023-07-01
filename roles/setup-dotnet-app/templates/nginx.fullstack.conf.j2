@@ -1,0 +1,46 @@
+upstream {{ app_dir }}-http {
+  server 127.0.0.1:{{ app_port }};
+}
+
+server {
+  listen 443 ssl;
+  listen [::]:443 ssl;
+  server_name {{ app_domain }};
+
+  ssl_certificate /etc/acme.sh/certs/{{ app_domain }}_ecc/fullchain.cer;
+  ssl_certificate_key /etc/acme.sh/certs/{{ app_domain }}_ecc/{{ app_domain }}.key;
+  include snippets/ssl-params;
+  include snippets/gzip;
+
+  location / {
+    root /var/www/{{ app_dir }};
+    index index.html index.htm;
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /api {
+            proxy_pass         http://{{ app_dir }}-http;
+            proxy_redirect     off;
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host $server_name;
+  }
+
+  location /.well-known {
+    root /var/www/vps;
+  }
+}
+
+server {
+  listen 80;
+  server_name {{ app_domain }};
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+
+  location /.well-known {
+    root /var/www/vps;
+  }
+}

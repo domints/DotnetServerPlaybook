@@ -1,0 +1,4 @@
+---
+- ansible.builtin.import_tasks: gather-facts.yml
+- ansible.builtin.import_tasks: install-apt-config.yml
+- ansible.builtin.import_tasks: install-dotnet.yml

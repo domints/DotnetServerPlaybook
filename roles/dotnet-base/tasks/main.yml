@@ -1,0 +1,46 @@
+---
+# tasks file for dotnet-base
+- name: Install NGINX
+  ansible.builtin.include_role:
+    name: nginxinc.nginx
+  vars:
+    nginx_branch: stable
+- name: Install dotnet
+  ansible.builtin.include_role:
+    name: install-dotnet
+- name: Install Acme.sh
+  ansible.builtin.include_role:
+    name: install-acmesh
+- name: Add base NGINX config
+  ansible.builtin.include_role:
+    name: base-nginx
+- name: Create dotnet app user
+  ansible.builtin.user:
+    name: dotnet-app
+    system: true
+    create_home: false
+- name: Create azure user
+  ansible.builtin.user:
+    name: azure
+    append: true
+    groups:
+      - www-data
+- name: Make azure user able to restart services (sudoers)
+  copy:
+    src: azure.sudoers
+    dest: /etc/sudoers.d/azure
+- name: Make azure user able to restart services (start script)
+  copy:
+    src: systemctl_start
+    dest: /usr/bin/systemctl_start
+    mode: 0755
+- name: Make azure user able to restart services (stop script)
+  copy:
+    src: systemctl_stop
+    dest: /usr/bin/systemctl_stop
+    mode: 0755
+- name: Create dotnet apps directory if it does not exist
+  ansible.builtin.file:
+    path: /var/dotnet
+    state: directory
+    mode: '0755'
